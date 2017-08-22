@@ -14,11 +14,13 @@ gem 'resque-scheduler'
 # Database toolkit
 gem 'sequel'
 # Web framework
-gem 'sinatra'
+gem 'sinatra', require: 'sinatra/base'
 # Database driver
 gem 'sqlite3'
 # HTTP Client
 gem 'faraday'
+# String comparator
+gem 'levenshtein-ffi'
 
 group :development do
   # Data generator
@@ -33,4 +35,6 @@ group :development do
   gem 'rake'
   # Linter
   gem 'rubocop'
+  # Reloader
+  gem 'rerun'
 end

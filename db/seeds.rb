@@ -1,7 +1,5 @@
 require_relative '../app/initialize'
 
-require 'faker'
-
 team = Team.create(
   slack_team_id: ENV['SLACK_TEAM_ID'],
   slack_oauth_token: ENV['SLACK_OAUTH_TOKEN'],

@@ -1,6 +1,14 @@
 require 'bundler'
 Bundler.require
 
+require 'resque/tasks'
+
+task :environment do
+  require './app/initialize'
+end
+
+task 'resque:setup' => :environment
+
 namespace :db do
   Sequel.extension :migration
   DB = Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://db/development.sqlite3')
