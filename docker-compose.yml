@@ -2,14 +2,29 @@ version: '2'
 services:
   redis:
     image: redis:alpine
-  web:
+  web: 
     build: .
     volumes:
       - .:/lunchbot
-    working_dir: /lunchbot
     tty: true
     command: sh -c 'source .env && bundle exec rerun rackup -- --host 0.0.0.0'
     ports:
       - '9292:9292'
+    links:
+      - redis
+  scheduler:
+    image: lunchbot_web
+    volumes:
+      - .:/lunchbot
+    tty: true
+    command: sh -c 'source .env && bundle exec rerun rake resque:scheduler'
+    links:
+      - redis
+  workers:
+    image: lunchbot_web
+    volumes:
+      - .:/lunchbot
+    tty: true
+    command: sh -c 'source .env && bundle exec rerun rake resque:workers -- COUNT=2 QUEUE=* INTERVAL=2' 
     links:
       - redis

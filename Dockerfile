@@ -10,11 +10,12 @@ ENV BUILD_PACKAGES \
   make \
   sqlite-dev
 ENV RUNTIME_PACKAGES \
-  sqlite-libs
+  sqlite-libs \
+  tzdata
 
 RUN set -ex \
   && apk add --no-cache --virtual .build-packages $BUILD_PACKAGES \
-  && apk add --no-cache --virtual .runtime-packages $RUNTIME_PACKAGES \
+  && apk add --no-cache $RUNTIME_PACKAGES \
   && bundle install --jobs 4 \
   && apk del .build-packages
 

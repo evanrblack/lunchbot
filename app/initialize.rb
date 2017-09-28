@@ -23,3 +23,4 @@ Dir[JOB_DIR].each do |file|
 end
 
 Resque.redis = 'redis:6379'
+Resque.logger.level = Logger::DEBUG

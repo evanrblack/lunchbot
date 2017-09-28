@@ -2,12 +2,20 @@ require 'bundler'
 Bundler.require
 
 require 'resque/tasks'
+require 'resque/scheduler/tasks'
+require 'yaml'
 
 task :environment do
   require './app/initialize'
 end
 
-task 'resque:setup' => :environment
+namespace :resque do
+  task setup: :environment
+  task setup_schedule: :setup do
+    Resque.schedule = YAML.load_file(File.join(__dir__, '/config/resque_scheduler.yml'))
+  end
+  task scheduler: :setup_schedule
+end
 
 namespace :db do
   Sequel.extension :migration

@@ -64,6 +64,7 @@ Sequel.migration do
       foreign_key :place_id, :places, null: false
 
       DateTime :departure_time, null: false
+      Boolean :closed, null: false, default: false
       String :slack_channel_id
       String :slack_ts
 

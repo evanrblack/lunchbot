@@ -13,7 +13,7 @@ class Attendee < Sequel::Model
       where(Sequel.lit('driver_id IS NOT NULL AND seats IS 0'))
     end
 
-    def abandoned
+    def stranded
       where(Sequel.lit('driver_id IS NULL AND seats IS 0'))
     end
   end
@@ -26,21 +26,16 @@ class Attendee < Sequel::Model
     validates_not_attending_other_event
   end
 
-  def before_update
-    super
-    where(driver_id: id).update(driver_id: nil) if driver_id
-  end
-
   def driving?
-    !driver_id && seats
+    !driver_id && seats > 0
   end
 
   def riding?
-    driver_id && !seats
+    driver_id && seats == 0
   end
 
-  def abandoned?
-    !driver_id && !seats
+  def stranded?
+    !driver_id && seats == 0
   end
 
   private

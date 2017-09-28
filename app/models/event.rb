@@ -4,12 +4,23 @@ class Event < Sequel::Model
   one_to_many :attendees
 
   dataset_module do
-    subset :active { Sequel::CURRENT_TIMESTAMP < departure_time }
+    def active
+      where(closed: false)
+    end
+
+    def closed
+      where(closed: true)
+    end
   end
 
   def validate
     super
     validates_presence %i[place_id departure_time]
+  end
+
+  def departure_time_formatted
+    tz = TZInfo::Timezone.get('America/Chicago')
+    tz.utc_to_local(departure_time).strftime('%-I:%M %p')
   end
 
   def to_slack_message
@@ -29,21 +40,36 @@ class Event < Sequel::Model
       attachments << {
         text: "#{driver_name} driving #{passenger_names} (#{seats_left} seats left)",
         callback_id: 'become_passenger',
-        actions: ([button] if seats_left > 0)
+        actions: ([button] if seats_left > 0 && !closed)
       }
     end
+
     # then option to become a driver
     options = [{ text: 'Just me', value: 1 }]
     (2..5).each do |i|
       options << { text: "Me and #{i - 1} more", value: i }
     end
-    select = { name: 'seats', text: "I'm driving...", type: 'select', options: options }
-    attachments << { text: '', callback_id: "become_driver:#{id}", actions: [select] }
+
+    stranded = attendees.select(&:stranded?)
+    if stranded.any?
+      attachments << { text: "No ride: #{stranded.map(&:slack_user_name).join(', ')}" }
+    end
+
+    if !closed
+      select = { name: 'seats', text: "I'm driving...", type: 'select', options: options }
+      attachments << { text: '', callback_id: "become_driver:#{id}", actions: [select] }
+    end
+
     # put it all together
+    segments = [
+      "_Lunch at_ *#{place.name}*",
+      "#{attendees.count} attending",
+      "_#{!closed ? 'leaving' : 'left'} at_ #{departure_time_formatted}"
+    ]
     message = {
       token: place.team.slack_oauth_token,
       channel: slack_channel_id,
-      text: "_Lunch at_ *#{place.name}*",
+      text: segments.join(', '),
       attachments: attachments.to_json
     }
   end

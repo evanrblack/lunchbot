@@ -1,0 +1,2 @@
+CloseEvents:
+  cron: '* * * * *'

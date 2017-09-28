@@ -45,27 +45,58 @@ class App < Sinatra::Base
   def become_passenger
     slack_user_id = @payload['user']['id']
     slack_user_name = @payload['user']['name']
+    driver = Attendee.find(id: @payload['actions'][0]['value'])
+    event = driver.event
 
-    puts @payload
-
-    # look for same user in currently active event
+    # look for same user in another active event
+    event_ids = Event.active.map(&:id)
+    attendee = Attendee.find(event_id: event_ids, slack_user_id: slack_user_id)
+    if attendee
+      # already in active event
+      if attendee != driver
+        # not their own driver
+        old_event = attendee.event
+        old_passengers = []
+        if attendee.seats > 0
+          # but were a driver
+          old_passengers = attendee.passengers
+        end
+        attendee.update(seats: 0, event_id: event.id, driver_id: driver.id)
+        old_passengers.each { |p| p.update(driver: nil) }
+        old_event.update_slack_message if old_event.id != event.id
+      end
+    else
+      # not in active event
+      Attendee.create(
+        slack_user_id: slack_user_id,
+        slack_user_name: slack_user_name,
+        seats: 0,
+        event_id: event.id,
+        driver_id: driver.id,
+      )
+    end
+    event.update_slack_message
+    
     return 200
   end
 
   def become_driver
-    event = Event.find(id: @payload['callback_id'].split(':').last)
-    seats = @payload['actions'].first['selected_options'].first['value'].to_i
-    
-    # look for same user in currently active event
     slack_user_id = @payload['user']['id']
     slack_user_name = @payload['user']['name']
+    seats = @payload['actions'].first['selected_options'].first['value'].to_i
+    event = Event.find(id: @payload['callback_id'].split(':').last)
+    
+    # look for same user in another active event
     event_ids = Event.active.map(&:id)
-    puts event_ids
     attendee = Attendee.find(event_id: event_ids, slack_user_id: slack_user_id)
     if attendee
       old_event_id = attendee.event_id
-      attendee.update(event_id: event.id, seats: seats)
-      Event.find(id: old_event_id).update_slack_message if old_event_id != event.id
+      old_passengers = attendee.passengers
+      attendee.update(event_id: event.id, driver: nil, seats: seats)
+      if old_event_id != event.id
+        Event.find(id: old_event_id).update_slack_message 
+        old_passengers.each { |p| p.update(driver: nil) }
+      end
     else
       Attendee.create(
         event_id: event.id,

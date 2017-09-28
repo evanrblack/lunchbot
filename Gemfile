@@ -21,6 +21,8 @@ gem 'sqlite3'
 gem 'faraday'
 # String comparator
 gem 'levenshtein-ffi'
+# Handle timezones
+gem 'tzinfo'
 
 group :development do
   # Data generator
