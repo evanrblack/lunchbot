@@ -24,41 +24,6 @@ Sequel.migration do
       unique %i[team_id name]
     end
 
-    create_table :polls do
-      primary_key :id, null: false
-      foreign_key :team_id, :teams, null: false
-
-      DateTime :ends_at, null: false
-
-      DateTime :created_at, null: false
-      DateTime :updated_at, null: false
-
-    end
-
-    create_table :options do
-      primary_key :id, null: false
-      foreign_key :poll_id, :polls, null: false
-      foreign_key :place_id, :polls, null: false
-
-      DateTime :created_at, null: false
-      DateTime :updated_at, null: false
-
-      unique %i[poll_id place_id]
-    end
-
-    create_table :votes do
-      primary_key :id, null: false
-      foreign_key :option_id, :options, null: false
-
-      String :slack_user_id, null: false
-      String :slack_user_name, null: false
-
-      DateTime :created_at, null: false
-      DateTime :updated_at, null: false
-
-      unique %i[option_id slack_user_id]
-    end
-
     create_table :events do
       primary_key :id, null: false
       foreign_key :place_id, :places, null: false

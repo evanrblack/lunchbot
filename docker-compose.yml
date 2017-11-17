@@ -7,24 +7,20 @@ services:
     volumes:
       - .:/lunchbot
     tty: true
-    command: sh -c 'source .env && bundle exec rerun rackup -- --host 0.0.0.0'
+    env_file:
+      - .env
+    command: sh -c 'bundle exec rerun rackup -- --host 0.0.0.0'
     ports:
       - '9292:9292'
     links:
       - redis
-  scheduler:
+  worker:
     image: lunchbot_web
     volumes:
       - .:/lunchbot
     tty: true
-    command: sh -c 'source .env && bundle exec rerun rake resque:scheduler'
-    links:
-      - redis
-  workers:
-    image: lunchbot_web
-    volumes:
-      - .:/lunchbot
-    tty: true
-    command: sh -c 'source .env && bundle exec rerun rake resque:workers -- COUNT=2 QUEUE=* INTERVAL=2' 
+    env_file:
+      - .env
+    command: sh -c 'bundle exec rerun sidekiq -- -r ./app/app.rb'
     links:
       - redis

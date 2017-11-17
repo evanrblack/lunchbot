@@ -1,7 +1,7 @@
-class CloseEvents
-  @queue = :close_events
+class EventCloser
+  include Sidekiq::Worker
 
-  def self.perform
+  def perform
     Event.active.where{Sequel::CURRENT_TIMESTAMP > departure_time}.each do |event|
       event.update(closed: true)
       event.update_slack_message

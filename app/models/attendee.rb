@@ -22,7 +22,7 @@ class Attendee < Sequel::Model
     super
     validates_presence %i[event_id slack_user_id slack_user_name seats]
     validates_unique %i[event_id slack_user_id]
-    validates_includes 0..5, :seats
+    validates_includes 0..6, :seats
     validates_not_attending_other_event
   end
 

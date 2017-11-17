@@ -3,24 +3,24 @@
 source 'https://rubygems.org'
 git_source(:github) { |repo_name| "https://github.com/#{repo_name}" }
 
+# HTTP Client
+gem 'faraday'
 # Handles durations
 gem 'iso8601'
+# String comparator
+gem 'levenshtein-ffi'
 # Web server
 gem 'puma'
-# Job queue
-gem 'resque'
-# Job scheduler
-gem 'resque-scheduler'
 # Database toolkit
 gem 'sequel'
+# Job queue
+gem 'sidekiq'
+# Job scheduler
+gem 'sidekiq-scheduler'
 # Web framework
 gem 'sinatra', require: 'sinatra/base'
 # Database driver
 gem 'sqlite3'
-# HTTP Client
-gem 'faraday'
-# String comparator
-gem 'levenshtein-ffi'
 # Handle timezones
 gem 'tzinfo'
 

@@ -1,6 +1,5 @@
 class Place < Sequel::Model
   many_to_one :team
-  one_to_many :polls
   one_to_many :events
 
   def validate

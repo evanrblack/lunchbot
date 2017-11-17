@@ -76,11 +76,11 @@ class Event < Sequel::Model
 
   def create_slack_message
     raise 'Message already exists' if slack_ts
-    Resque.enqueue(SlackBridge, self.id)
+    EventPoster.perform_async(self.id)
   end
 
   def update_slack_message
     raise 'No timestamp' unless slack_ts
-    Resque.enqueue(SlackBridge, self.id)
+    EventPoster.perform_async(self.id)
   end
 end

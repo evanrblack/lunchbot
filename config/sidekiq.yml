@@ -1,0 +1,4 @@
+:schedule:
+  close_events:
+    cron: '* * * * *'
+    class: EventCloser

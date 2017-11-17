@@ -17,10 +17,7 @@ Dir[MODEL_DIR].each do |file|
   require file
 end
 
-JOB_DIR = File.join(APP_ROOT, 'jobs/*.rb')
-Dir[JOB_DIR].each do |file|
+WORKER_DIR = File.join(APP_ROOT, 'workers/*.rb')
+Dir[WORKER_DIR].each do |file|
   require file
 end
-
-Resque.redis = 'redis:6379'
-Resque.logger.level = Logger::DEBUG
