@@ -19,7 +19,7 @@ class Event < Sequel::Model
   end
 
   def departure_time_formatted
-    tz = TZInfo::Timezone.get('America/Chicago')
+    tz = TZInfo::Timezone.get(place.team.time_zone)
     tz.utc_to_local(departure_time).strftime('%-I:%M %p')
   end
 

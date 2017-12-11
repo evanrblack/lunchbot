@@ -9,7 +9,7 @@ services:
     tty: true
     env_file:
       - .env
-    command: sh -c 'bundle exec rerun rackup -- --host 0.0.0.0'
+    command: sh -c 'bundle exec rake db:migrate && bundle exec rerun rackup -- --host 0.0.0.0'
     ports:
       - '9292:9292'
     links:

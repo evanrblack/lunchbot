@@ -11,6 +11,7 @@ class EventPoster
     data = event.to_slack_message
     response = Faraday.post(url, data)
     event.update(slack_ts: JSON.parse(response.body)['ts'])
+    logger.info "Created event ##{event.id}: #{event.place.name}"
   end
 
   def update_post(event)

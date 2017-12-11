@@ -26,19 +26,28 @@ class App < Sinatra::Base
 
   def create_event
     team = Team.find(slack_team_id: @payload['team_id'])
+
+    place_name, time_string = @payload['text'].split(',').map(&:strip)
+    return "Please type the command like this: `/lunch place, time`"unless place_name && time_string
+
+    tz = TZInfo::Timezone.get(team.time_zone)
+    departure_time = tz.local_to_utc(Time.parse(time_string))
+
     closest, distance = Place.all
-      .map { |p| [p, Levenshtein.distance(@payload['text'], p.name)] }
+      .map { |p| [p, Levenshtein.distance(place_name, p.name)] }
       .min { |a, b| a[1] <=> b[1] }
     place = if (closest && distance < 7)
               closest
             else
-              Place.create(team: team, name: @payload['text'], capacity: 10)
+              Place.create(team: team, name: place_name, capacity: 10)
             end
+
     Event.create(
       place_id: place.id,
-      departure_time: Time.now + 30 * 60,
+      departure_time: departure_time,
       slack_channel_id: @payload['channel_id']
     ).create_slack_message
+
     return 200
   end
 
