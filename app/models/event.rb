@@ -46,7 +46,7 @@ class Event < Sequel::Model
 
     # then option to become a driver
     options = [{ text: 'Just me', value: 1 }]
-    (2..5).each do |i|
+    (2..8).each do |i|
       options << { text: "Me and #{i - 1} more", value: i }
     end
 
