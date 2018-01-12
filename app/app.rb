@@ -36,7 +36,7 @@ class App < Sinatra::Base
     closest, distance = Place.all
       .map { |p| [p, Levenshtein.distance(place_name, p.name)] }
       .min { |a, b| a[1] <=> b[1] }
-    place = if (closest && distance < 7)
+    place = if (closest && distance < 3)
               closest
             else
               Place.create(team: team, name: place_name, capacity: 10)
