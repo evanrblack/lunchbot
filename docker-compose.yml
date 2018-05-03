@@ -30,7 +30,7 @@ services:
       - redis
     labels:
       traefik.backend: 'lunchbot-web'
-      traefik.frontend.rule: 'Host:lunchbot.net'
+      traefik.frontend.rule: 'Host:lunchbot.sloth.run'
       traefik.enable: 'true'
       traefik.port: 9292
 
