@@ -32,7 +32,7 @@ services:
       traefik.backend: 'lunchbot-web'
       traefik.frontend.rule: 'Host:lunchbot.sloth.run'
       traefik.enable: 'true'
-      traefik.port: 9292
+      traefik.port: '9292'
 
   worker:
     image: lunchbot_web
