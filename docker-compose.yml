@@ -1,7 +1,23 @@
 version: '2'
 services:
+  reverse-proxy:
+    image: traefik
+    command: --api --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.toml:/traefik.toml
+      - ./acme.json:/acme.json
+    ports:
+      - '80:80'
+      - '443:443'
+    labels:
+      traefik.enable: 'false'
+
   redis:
     image: redis:alpine
+    labels:
+      traefik.enable: 'false'
+
   web: 
     build: .
     volumes:
@@ -10,10 +26,14 @@ services:
     env_file:
       - .env
     command: sh -c 'bundle exec rake db:migrate && bundle exec rerun rackup -- --host 0.0.0.0'
-    ports:
-      - '9292:9292'
-    links:
+    depends_on:
       - redis
+    labels:
+      traefik.backend: 'lunchbot-web'
+      traefik.frontend.rule: 'Host:lunchbot.net'
+      traefik.enable: 'true'
+      traefik.port: 9292
+
   worker:
     image: lunchbot_web
     volumes:
@@ -22,5 +42,7 @@ services:
     env_file:
       - .env
     command: sh -c 'bundle exec rerun sidekiq -- -r ./app/app.rb'
-    links:
+    depends_on:
       - redis
+    labels:
+      traefik.enable: 'false'
