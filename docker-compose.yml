@@ -7,6 +7,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik.toml:/traefik.toml
       - ./acme.json:/acme.json
+    networks:
+      - proxy
     ports:
       - '80:80'
       - '443:443'
@@ -26,10 +28,14 @@ services:
     env_file:
       - .env
     command: sh -c 'bundle exec rake db:migrate && bundle exec rerun rackup -- --host 0.0.0.0'
+    networks:
+      - default
+      - proxy
     depends_on:
       - redis
     labels:
       traefik.backend: 'lunchbot-web'
+      traefik.docker.network: 'proxy'
       traefik.frontend.rule: 'Host:lunchbot.sloth.run'
       traefik.enable: 'true'
       traefik.port: '9292'
@@ -42,7 +48,13 @@ services:
     env_file:
       - .env
     command: sh -c 'bundle exec rerun sidekiq -- -r ./app/app.rb'
+    networks:
+      - default
     depends_on:
       - redis
     labels:
       traefik.enable: 'false'
+
+networks:
+  proxy:
+    external: true
