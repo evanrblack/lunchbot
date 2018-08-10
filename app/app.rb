@@ -49,7 +49,7 @@ class App < Sinatra::Base
     minutes = minutes < 60 ? minutes : 0
 
     input_total_minutes = hours * 60 + minutes
-    tz_total_minutes = tz.now.hours * 60 + tz.now.minutes
+    tz_total_minutes = tz.now.hour * 60 + tz.now.min
     if (input_total_minutes < tz_total_minutes)
       hours += 12
     end
