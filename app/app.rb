@@ -31,7 +31,30 @@ class App < Sinatra::Base
     return "Please type the command like this: `/lunch place, time`"unless place_name && time_string
 
     tz = TZInfo::Timezone.get(team.time_zone)
-    departure_time = tz.local_to_utc(Time.parse(time_string))
+    digits_only = time_string.tr('^0-9', '')
+    if time_string.length <= 2
+      # hour only
+      hours = digits_only.to_i
+      minutes = 0
+    elsif time_string.length == 3
+      # one digit hour
+      hours = digits_only[0].to_i
+      minutes = digits_only[1..2].to_i
+    else
+      hours = digits_only[-4..-3].to_i
+      minutes = digits_only[-2..-1].to_i
+    end
+
+    hours = hours % 12
+    minutes = minutes < 60 ? minutes : 0
+
+    input_total_minutes = hours * 60 + minutes
+    tz_total_minutes = tz.now.hours * 60 + tz.now.minutes
+    if (input_total_minutes < tz_total_minutes)
+      hours += 12
+    end
+
+    # departure_time = tz.local_to_utc(Time.parse(time_string))
 
     closest, distance = Place.all
       .map { |p| [p, Levenshtein.distance(place_name, p.name)] }
@@ -102,11 +125,21 @@ class App < Sinatra::Base
       old_event_id = attendee.event_id
       old_passengers = attendee.passengers
       attendee.update(event_id: event.id, driver: nil, seats: seats)
+
+      # if the user switched events
       if old_event_id != event.id
         Event.find(id: old_event_id).update_slack_message 
         old_passengers.each { |p| p.update(driver: nil) }
       end
-    else
+
+      # if the user adjusts seats
+      if seats == 0
+        old_passengers.each { |p| p.update(driver: nil) }
+        attendee.destroy
+      else
+        old_passengers[..-1]
+      end
+    elsif seats > 0
       Attendee.create(
         event_id: event.id,
         seats: seats,
