@@ -84,24 +84,33 @@ class App < Sinatra::Base
     event_ids = Event.active.map(&:id)
     attendee = Attendee.find(event_id: event_ids, slack_user_id: slack_user_id)
     if attendee
-      old_event_id = attendee.event_id
-      old_passengers = attendee.passengers
-      attendee.update(event_id: event.id, driver: nil, seats: seats)
-      if old_event_id != event.id
-        Event.find(id: old_event_id).update_slack_message
+      # already in active event
+      if attendee != driver
+        # not their own driver
+        old_event = attendee.event
+        old_passengers = []
+        if attendee.seats > 0
+          # but were a driver
+          old_passengers = attendee.passengers
+        end
+        attendee.update(seats: 0, event_id: event.id, driver_id: driver.id)
         old_passengers.each { |p| p.update(driver: nil) }
+        old_event.update_slack_message if old_event.id != event.id
       end
     else
+      # not in active event
       Attendee.create(
-        event_id: event.id,
-        seats: seats,
         slack_user_id: slack_user_id,
-        slack_user_name: slack_user_name
+        slack_user_name: slack_user_name,
+        seats: 0,
+        event_id: event.id,
+        driver_id: driver.id,
       )
     end
     event.update_slack_message
+
     return 200
-	end
+  end
 
   def become_driver
     slack_user_id = @payload['user']['id']
@@ -116,29 +125,20 @@ class App < Sinatra::Base
       old_event_id = attendee.event_id
       old_passengers = attendee.passengers
       attendee.update(event_id: event.id, driver: nil, seats: seats)
-
-      # if the user switched events
       if old_event_id != event.id
-        Event.find(id: old_event_id).update_slack_message 
-        old_passengers.each { |p| p.update(driver: nil) }
+	Event.find(id: old_event_id).update_slack_message
+	old_passengers.each { |p| p.update(driver: nil) }
       end
-
-      # if the user adjusts seats
-      if seats == 0
-        old_passengers.each { |p| p.update(driver: nil) }
-        attendee.destroy
-      else
-        old_passengers[..-1]
-      end
-    elsif seats > 0
+    else
       Attendee.create(
-        event_id: event.id,
-        seats: seats,
-        slack_user_id: slack_user_id,
-        slack_user_name: slack_user_name
+	event_id: event.id,
+	seats: seats,
+	slack_user_id: slack_user_id,
+	slack_user_name: slack_user_name
       )
     end
     event.update_slack_message
+
     return 200
   end
 
