@@ -34,27 +34,27 @@ class App < Sinatra::Base
     digits_only = time_string.tr('^0-9', '')
     if time_string.length <= 2
       # hour only
-      hours = digits_only.to_i
-      minutes = 0
+      hour = digits_only.to_i
+      minute = 0
     elsif time_string.length == 3
       # one digit hour
-      hours = digits_only[0].to_i
-      minutes = digits_only[1..2].to_i
+      hour = digits_only[0].to_i
+      minute = digits_only[1..2].to_i
     else
-      hours = digits_only[-4..-3].to_i
-      minutes = digits_only[-2..-1].to_i
+      hour = digits_only[-4..-3].to_i
+      minute = digits_only[-2..-1].to_i
     end
 
-    hours = hours % 12
-    minutes = minutes < 60 ? minutes : 0
+    hour = hour % 12
+    minute = minute < 60 ? minute : 0
 
-    input_total_minutes = hours * 60 + minutes
-    tz_total_minutes = tz.now.hour * 60 + tz.now.min
-    if (input_total_minutes < tz_total_minutes)
-      hours += 12
+    input_total_minute = hour * 60 + minute
+    tz_total_minute = tz.now.hour * 60 + tz.now.min
+    if (input_total_minute < tz_total_minute)
+      hour += 12
     end
 
-    # departure_time = tz.local_to_utc(Time.parse(time_string))
+    departure_time = tz.local_time(tz.now.year, tz.now.month, tz.now.day, hour, minute)
 
     closest, distance = Place.all
       .map { |p| [p, Levenshtein.distance(place_name, p.name)] }
