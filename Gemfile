@@ -22,7 +22,7 @@ gem 'sinatra', require: 'sinatra/base'
 # Database driver
 gem 'sqlite3'
 # Handle timezones
-gem 'tzinfo'
+gem 'tzinfo', '~>0.3'
 
 group :development do
   # Data generator
