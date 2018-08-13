@@ -54,7 +54,14 @@ class App < Sinatra::Base
       hour += 12
     end
 
-    departure_time = tz.local_time(tz.now.year, tz.now.month, tz.now.day, hour, minute)
+    offset = tz.period_for_utc(Time.now).utc_offset
+    departure_time = Time.new(tz.now.year,
+                              tz.now.month,
+                              tz.now.day,
+                              hour,
+                              minute,
+                              0,
+                              offset)
 
     closest, distance = Place.all
       .map { |p| [p, Levenshtein.distance(place_name, p.name)] }
