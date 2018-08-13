@@ -28,15 +28,15 @@ class App < Sinatra::Base
     team = Team.find(slack_team_id: @payload['team_id'])
 
     place_name, time_string = @payload['text'].split(',').map(&:strip)
-    return "Please type the command like this: `/lunch place, time`"unless place_name && time_string
+    return 'Please type the command like this: `/lunch place, time`' unless place_name && time_string
 
     tz = TZInfo::Timezone.get(team.time_zone)
     digits_only = time_string.tr('^0-9', '')
-    if time_string.length <= 2
+    if digits_only.length <= 2
       # hour only
       hour = digits_only.to_i
       minute = 0
-    elsif time_string.length == 3
+    elsif digits_only.length == 3
       # one digit hour
       hour = digits_only[0].to_i
       minute = digits_only[1..2].to_i
