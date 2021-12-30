@@ -1,26 +1,33 @@
-version: '2'
+version: '3'
 services:
   reverse-proxy:
-    image: traefik
-    command: --api --docker
+    image: traefik:v2.5
+    command:
+      #- '--api.insecure=true'
+      - '--providers.docker=true'
+      - '--providers.docker.exposedbydefault=false'
+      - '--entrypoints.web.address=:80'
+      - '--entrypoints.websecure.address=:443'
+      - '--certificatesresolvers.myresolver.acme.httpchallenge=true'
+      - '--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web'
+      - '--certificatesresolvers.myresolver.acme.email=postmaster@sloth.run'
+      - '--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json'
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./traefik.toml:/traefik.toml
-      - ./acme.json:/acme.json
+      - ./letsencrypt:/letsencrypt
     networks:
       - proxy
     ports:
       - '80:80'
       - '443:443'
-    labels:
-      traefik.enable: 'false'
+      #- '8080:8080'
 
   redis:
     image: redis:alpine
     labels:
       traefik.enable: 'false'
 
-  web: 
+  web:
     build: .
     volumes:
       - .:/lunchbot
@@ -28,17 +35,19 @@ services:
     env_file:
       - .env
     command: sh -c 'bundle exec rake db:migrate && bundle exec rerun rackup -- --host 0.0.0.0'
+    ports:
+      - '9292:9292'
     networks:
       - default
       - proxy
     depends_on:
       - redis
     labels:
-      traefik.backend: 'lunchbot-web'
-      traefik.docker.network: 'proxy'
-      traefik.frontend.rule: 'Host:lunchbot.sloth.run'
-      traefik.enable: 'true'
-      traefik.port: '9292'
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.lunchbot.rule=Host(`lunchbot.sloth.run`)'
+      - 'traefik.http.routers.lunchbot.service=lunchbot'
+      - 'traefik.http.routers.lunchbot.tls.certresolver=myresolver'
+      - 'traefik.http.services.lunchbot.loadbalancer.server.port=9292'
 
   worker:
     image: lunchbot_web

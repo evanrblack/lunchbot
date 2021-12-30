@@ -67,7 +67,7 @@ class Event < Sequel::Model
       "_#{!closed ? 'leaving' : 'left'} at_ #{departure_time_formatted}"
     ]
     message = {
-      token: place.team.slack_oauth_token,
+      token: place.team.slack_bot_oauth_token,
       channel: slack_channel_id,
       text: segments.join(', '),
       attachments: attachments.to_json
