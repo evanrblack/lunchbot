@@ -44,7 +44,7 @@ services:
       - redis
     labels:
       - 'traefik.enable=true'
-      - 'traefik.http.routers.lunchbot.rule=Host(`lunchbot.sloth.run`)'
+      - 'traefik.http.routers.lunchbot.rule=Host(`lunchbot.erblack.com`)'
       - 'traefik.http.routers.lunchbot.service=lunchbot'
       - 'traefik.http.routers.lunchbot.tls.certresolver=myresolver'
       - 'traefik.http.services.lunchbot.loadbalancer.server.port=9292'
